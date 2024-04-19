@@ -1,7 +1,7 @@
 # Headers Demo for iOS
 Demonstrates behavior with values of 'Cache-Control' response headers on iOS.
 For more info and explanations of how 'Cache-Control' response header values affect
-your iOS apps, see [Use Your Headers] (https://blog.diveinsoft.com/2024/04/for-on-device-caching-use-your-headers.html)
+your iOS apps, see [Use Your Headers](https://blog.diveinsoft.com/2024/04/for-on-device-caching-use-your-headers.html)
 
 See the blog post entry on how to perform the forensics on viewing cache data in the simulator.
 
