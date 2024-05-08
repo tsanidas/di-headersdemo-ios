@@ -7,9 +7,16 @@ import SwiftUI
 /// value.
 ///
 struct RequestsView: View {
-    private var viewmodel = RequestsViewModel()
+    @State private var viewmodel = RequestsViewModel()
     var body: some View {
         List {
+            HStack {
+                Toggle(isOn: $viewmodel.useV2API, label: {
+                    Text("Use V2 API").font(.headline)
+                })
+            }
+            .padding()
+
             apiListItem(withHeadline: "Product Data",
                         retreiveAction: viewmodel.retrieveProductById,
                         description: viewmodel.productDisplay?.displayString, date: viewmodel.productDisplay?.dateHeaderValue,
@@ -26,6 +33,7 @@ struct RequestsView: View {
                         retreiveAction: viewmodel.retrievePromotions,
                         description: viewmodel.promoDisplay?.displayString, date: viewmodel.promoDisplay?.dateHeaderValue,
                         cacheControl: viewmodel.promoDisplay?.cacheControlValue)
+
         }
         .padding()
     }

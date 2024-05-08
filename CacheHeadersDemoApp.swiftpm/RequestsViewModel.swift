@@ -16,12 +16,38 @@ class RequestsViewModel {
     var orderDisplay: ApiDisplayBlock?
     var customerDisplay: ApiDisplayBlock?
     var promoDisplay: ApiDisplayBlock?
+    var useV2API = false
         
     ///
+    /// Helper method to sort through resulting data and headers
+    ///
+    private func handleRequest(data: Data, response: URLResponse) throws -> (ApiDisplayBlock, Data) {
+        var pd = ApiDisplayBlock(displayString: "", dateHeaderValue: "", cacheControlValue: "")
+
+        guard let httpResponse = response as? HTTPURLResponse,
+              httpResponse.statusCode == 200 else {
+            throw URLError(.badServerResponse, userInfo: ["data": data, "response": response])
+        }
+        if let cacheControl = httpResponse.value(forHTTPHeaderField: "Cache-Control") {
+            pd.cacheControlValue = cacheControl
+        } else if let etag = httpResponse.value(forHTTPHeaderField: "Etag") {
+            pd.cacheControlValue = "ETag: \(etag)"
+        } 
+        else {
+            pd.cacheControlValue = "-"
+        }
+        if let prd = httpResponse.value(forHTTPHeaderField: "Date") {
+            pd.dateHeaderValue = prd
+        }
+        return (pd, data)
+    }
+    
+    ///
     /// Method to retrieve products using fixed (fake) product ID numbers
+    /// The products API has a v2 that uses Etag, while v1 uses "Cache-Control: max-age=x"
     ///
     func retrieveProductById() {
-        guard let url = URL(string: "\(RequestsViewModel.urlBase)/products/2") else {
+        guard let url = URL(string: "\(RequestsViewModel.urlBase)/products/\(self.useV2API ? "v2/" : "" )2") else {
             print("Invalid URL")
             return
         }
@@ -30,19 +56,10 @@ class RequestsViewModel {
         cancellables.insert(
             URLSession.shared.dataTaskPublisher(for: url)
                 .tryMap({ (data: Data, response: URLResponse) in
-                    guard let httpResponse = response as? HTTPURLResponse,
-                          httpResponse.statusCode == 200 else {
-                        throw URLError(.badServerResponse, userInfo: ["data": data, "response": response])
-                    }
-                    if let cacheControl = httpResponse.value(forHTTPHeaderField: "Cache-Control") {
-                        pd.cacheControlValue = cacheControl
-                    } else {
-                        pd.cacheControlValue = "-"
-                    }
-                    if let prd = httpResponse.value(forHTTPHeaderField: "Date") {
-                        pd.dateHeaderValue = prd
-                    }
-                    return data
+                    let handlerTpl = try self.handleRequest(data: data, response: response)
+                    pd.dateHeaderValue = handlerTpl.0.dateHeaderValue
+                    pd.cacheControlValue = handlerTpl.0.cacheControlValue
+                    return handlerTpl.1
                 })
                 .decode(type: Product.self, decoder: CodableHelper.jsonDecoder)
                 .eraseToAnyPublisher()
@@ -69,19 +86,10 @@ class RequestsViewModel {
         cancellables.insert(
             URLSession.shared.dataTaskPublisher(for: url)
                 .tryMap({ (data: Data, response: URLResponse) in
-                    guard let httpResponse = response as? HTTPURLResponse,
-                          httpResponse.statusCode == 200 else {
-                        throw URLError(.badServerResponse, userInfo: ["data": data, "response": response])
-                    }
-                    if let cacheControl = httpResponse.value(forHTTPHeaderField: "Cache-Control") {
-                        od.cacheControlValue = cacheControl
-                    } else {
-                        od.cacheControlValue = "-"
-                    }
-                    if let ordDate = httpResponse.value(forHTTPHeaderField: "Date") {
-                        od.dateHeaderValue = ordDate
-                    }
-                    return data
+                    let handlerTpl = try self.handleRequest(data: data, response: response)
+                    od.dateHeaderValue = handlerTpl.0.dateHeaderValue
+                    od.cacheControlValue = handlerTpl.0.cacheControlValue
+                    return handlerTpl.1
                 })
                 .decode(type: [Order].self, decoder: CodableHelper.jsonDecoder)
                 .eraseToAnyPublisher()
@@ -112,19 +120,10 @@ class RequestsViewModel {
         cancellables.insert(
             URLSession.shared.dataTaskPublisher(for: url)
                 .tryMap({ (data: Data, response: URLResponse) in
-                    guard let httpResponse = response as? HTTPURLResponse,
-                          httpResponse.statusCode == 200 else {
-                        throw URLError(.badServerResponse, userInfo: ["data": data, "response": response])
-                    }
-                    if let cacheControl = httpResponse.value(forHTTPHeaderField: "Cache-Control") {
-                        cd.cacheControlValue = cacheControl
-                    } else {
-                        cd.cacheControlValue = "-"
-                    }
-                    if let cDataDate = httpResponse.value(forHTTPHeaderField: "Date") {
-                        cd.dateHeaderValue = cDataDate
-                    }
-                    return data
+                    let handlerTpl = try self.handleRequest(data: data, response: response)
+                    cd.dateHeaderValue = handlerTpl.0.dateHeaderValue
+                    cd.cacheControlValue = handlerTpl.0.cacheControlValue
+                    return handlerTpl.1
                 })
                 .decode(type: Customer.self, decoder: CodableHelper.jsonDecoder)
                 .eraseToAnyPublisher()
@@ -151,19 +150,10 @@ class RequestsViewModel {
         cancellables.insert(
             URLSession.shared.dataTaskPublisher(for: url)
                 .tryMap({ (data: Data, response: URLResponse) in
-                    guard let httpResponse = response as? HTTPURLResponse,
-                          httpResponse.statusCode == 200 else {
-                        throw URLError(.badServerResponse, userInfo: ["data": data, "response": response])
-                    }
-                    if let cacheControl = httpResponse.value(forHTTPHeaderField: "Cache-Control") {
-                        pd.cacheControlValue = cacheControl
-                    } else {
-                        pd.cacheControlValue = "-"
-                    }
-                    if let cDataDate = httpResponse.value(forHTTPHeaderField: "Date") {
-                        pd.dateHeaderValue = cDataDate
-                    }
-                    return data
+                    let handlerTpl = try self.handleRequest(data: data, response: response)
+                    pd.dateHeaderValue = handlerTpl.0.dateHeaderValue
+                    pd.cacheControlValue = handlerTpl.0.cacheControlValue
+                    return handlerTpl.1
                 })
                 .decode(type: [Promotion].self, decoder: CodableHelper.jsonDecoder)
                 .eraseToAnyPublisher()

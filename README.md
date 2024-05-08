@@ -1,9 +1,9 @@
 # Headers Demo for iOS
-Demonstrates behavior with values of 'Cache-Control' response headers on iOS.
-For more info and explanations of how 'Cache-Control' response header values affect
-your iOS apps, see [Use Your Headers](https://blog.diveinsoft.com/2024/04/for-on-device-caching-use-your-headers.html)
+Demonstrates behavior with values of 'Cache-Control' and 'Etag" response headers on iOS.
+For more info and explanations of how these response header values affect
+your iOS apps, see [Use Your Headers](https://blog.diveinsoft.com/2024/04/for-on-device-caching-use-your-headers.html) and [Just in Time On-Device Caching with ETAG](https://blog.diveinsoft.com/2024/05/just-in-time-on-device-caching-with-etag.html)
 
-See the blog post entry on how to perform the forensics on viewing cache data in the simulator.
+See the blog post entries on how to perform the forensics on viewing cache data in the simulator.
 
 
 ## API Layer
